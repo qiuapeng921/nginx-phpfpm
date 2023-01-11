@@ -13,7 +13,6 @@ on:
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   docker:
@@ -36,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/$${{ github.repository }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
