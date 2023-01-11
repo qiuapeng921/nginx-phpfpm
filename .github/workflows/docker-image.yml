@@ -1,20 +1,16 @@
 name: ci
 
 on:
-  schedule:
-    - cron: "0 10 * * *"
+#  schedule:
+#    - cron: "0 10 * * *"
   push:
     branches:
-      - "**"
+      - "master"
     tags:
-      - "v*.*.*"
+      - "*.*.*"
   pull_request:
     branches:
-      - "main"
-
-
-env":
-  registry: hub.docker.com
+      - "master"
 
 jobs:
   docker:
@@ -28,11 +24,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          # list of Docker images to use as base name for tags
-          images: |
-            name/app
-            ghcr.io/username/app
-          # generate Docker tags based on the following events/attributes
+          images: qiuapeng921/nginx-phpfpm
           tags: |
             type=schedule
             type=ref,event=branch
@@ -59,7 +51,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
-          registry: {{ env.registry }}
+          registry: hub.docker.com
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GIT_TOKEN }}
       -
