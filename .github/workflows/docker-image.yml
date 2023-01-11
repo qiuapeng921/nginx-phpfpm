@@ -1,56 +1,82 @@
-name: ci
+name: build-images
 
 on:
-  #  schedule:
-  #    - cron: "0 10 * * *"
   push:
     branches:
       - "master"
     tags:
-      - "*.*.*"
+      - 'v*'
   pull_request:
     branches:
       - "master"
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: docker.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v3
-      -
-        name: Docker meta
+
+      - name: Set output
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
+      - name: Check output
+        run: |
+          echo ${{ steps.vars.outputs.tag }}
+          echo ${{ github.repository }}
+          echo ${{ env.REGISTRY }}/${{ github.repository }}
+
+      - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ github.repository_owner }}/${{ github.repository }}
-          tags: |
-            type=schedule
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=sha
-      -
-        name: Set up QEMU
+          images: ${{ env.REGISTRY }}/$${{ github.repository }}
+
+      - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
-      -
-        name: Set up Docker Buildx
+
+      - name: Set up Docker Build
         uses: docker/setup-buildx-action@v2
-      -
-        name: Login to Docker Hub
+
+      - name: Login to Docker Hub
         if: github.event_name != 'pull_request'
         uses: docker/login-action@v2
         with:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push
+
+      - name: Build and push Docker image
         uses: docker/build-push-action@v3
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+#      - name: Create release
+#        id: create_release
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ env.VERSIONTAG_THIS }}
+#          release_name: ${{ env.RELEASE_NAME }}
+#          body: ${{ env.RELEASE_NOTES }}
+#          draft: false
+#          prerelease: false
+#
+#      - name: Upload release asset
+#        uses: actions/upload-release-asset@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+#        with:
+#          upload_url: ${{ steps.create_release.outputs.upload_url }}
+#          asset_path: ./install-php-extensions
+#          asset_name: install-php-extensions
+#          asset_content_type: application/octet-stream
