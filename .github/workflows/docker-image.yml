@@ -57,25 +57,15 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-#      - name: Create release
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: ${{ env.VERSIONTAG_THIS }}
-#          release_name: ${{ env.RELEASE_NAME }}
-#          body: ${{ env.RELEASE_NOTES }}
-#          draft: false
-#          prerelease: false
-#
-#      - name: Upload release asset
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: ./install-php-extensions
-#          asset_name: install-php-extensions
-#          asset_content_type: application/octet-stream
+      - name: Set Up Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+
+      - name: Upload Release
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            Dockerfile
