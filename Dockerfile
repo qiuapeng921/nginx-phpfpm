@@ -34,9 +34,7 @@ COPY config/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY config/php/php-fpm.conf /usr/local/etc/php-fpm.conf
 COPY config/php/php.ini /usr/local/etc/php/
 
-COPY index.php /usr/share/nginx/html/src/public/
-COPY healthcheck.sh /usr/local/bin/healthcheck.sh
-RUN chmod +x /usr/local/bin/healthcheck.sh
+COPY index.php /usr/share/nginx/html/public/
 
 WORKDIR /usr/share/nginx/html/
 
